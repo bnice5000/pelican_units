@@ -13,14 +13,11 @@ FU
 FFF
 '''
 
-import copy
 import logging
-import pprint
 import re
 
 from pelican.settings import DEFAULT_CONFIG
 from pelican import contents, signals
-
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +33,7 @@ except ImportError:
 
 
 def pluralizer(value):
-    
+
     if value.magnitude != 1:
         p = inflect.engine()
         return p.inflect("{0.magnitude} plural('{0.units}')".format(value))
@@ -46,30 +43,35 @@ def pluralizer(value):
 
 def replacer(value):
     ureg = pint.UnitRegistry(autoconvert_offset_to_baseunit=True)
-    ureg.default_system = 'US'
+    ureg.default_system = DEFAULT_CONFIG['UNIT_SYSTEM']
     expression = value.group()[5:-1].strip()
     Q_ = ureg.Quantity
     dir(ureg.sys)
 
-    if '->' in expression:
-        unit, to = expression.split('->')
-        converted_unit = Q_(unit).to(to)
-    else:
-        converted_unit = Q_(expression).to_base_units()
+    if '::' in expression:
+        unit, *other_units = expression.split('::')
+        unit = Q_(unit)
+        converted_unit = ', '.join([pluralizer(unit.to(other_unit)) for other_unit in other_units])
+        unit = pluralizer(unit)
 
-    logger.debug('Unit Conversion: {0}'.format(pluralizer(converted_unit)))
-    html_unit = 
-    return '{0}'.format(pluralizer(converted_unit))
+    else:
+        unit = pluralizer(Q_(expression))
+        converted_unit = pluralizer(Q_(expression).to_base_units())
+
+    logger.debug(converted_unit)
+    # breakpoint()
+    html_unit = DEFAULT_CONFIG['UNIT_HTML_WRAPPER'].format(unit=unit, converted=converted_unit)
+    return html_unit
 
 
 def initialized(pelican):
 
     DEFAULT_CONFIG.setdefault('UNIT_SYSTEM', 'SI')
-    DEFAULT_CONFIG.setdefault('UNIT_HTML_WRAPPER', '<dl><dt>{orig}</dt><dd>{converted}</dd></dl>')
+    DEFAULT_CONFIG.setdefault('UNIT_HTML_WRAPPER', '{unit} (<em>{converted}</em>)')
 
     if pelican:
         pelican.settings.setdefault('UNIT_SYSTEM', 'SI')
-        pelican.setdefault('UNIT_HTML_WRAPPER', '<dl><dt>{orig}</dt><dd>{converted}</dd></dl>')
+        pelican.settings.setdefault('UNIT_HTML_WRAPPER', '{unit} (<em>{converted}</em>)')
 
 
 def unit(content):
