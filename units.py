@@ -36,9 +36,9 @@ def pluralizer(value):
 
     if value.magnitude != 1:
         p = inflect.engine()
-        return p.inflect("{0.magnitude} plural('{0.units}')".format(value))
+        return p.inflect("{magnitude} plural('{units}')".format(magnitude=round(value.magnitude, DEFAULT_CONFIG['UNIT_PRECISION']), units=value.units))
     else:
-        return '{0.magnitude} {0.units}'.format(value)
+        return '{magnitude} {units}'.format(magnitude=round(value.magnitude, DEFAULT_CONFIG['UNIT_PRECISION']), units=value.units)
 
 
 def replacer(value):
@@ -67,10 +67,12 @@ def replacer(value):
 def initialized(pelican):
 
     DEFAULT_CONFIG.setdefault('UNIT_SYSTEM', 'SI')
+    DEFAULT_CONFIG.setdefault('UNIT_PRECISION', 2)
     DEFAULT_CONFIG.setdefault('UNIT_HTML_WRAPPER', '{unit} (<em>{converted}</em>)')
 
     if pelican:
         pelican.settings.setdefault('UNIT_SYSTEM', 'SI')
+        DEFAULT_CONFIG.setdefault('UNIT_PRECISION', 2)
         pelican.settings.setdefault('UNIT_HTML_WRAPPER', '{unit} (<em>{converted}</em>)')
 
 
