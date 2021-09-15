@@ -58,6 +58,15 @@ except ImportError:
 
 
 def pluralizer(value):
+    """This procedure pluralizes the unit if it is not singular.
+
+
+    Args:
+        value ([Quantity]): [parameter takes in a pint quantity]
+
+    Returns:
+        [string]: [returns a formatted string of the magnitude with a pluralized or singular unit]
+    """
 
     if value.magnitude != 1:
         p = inflect.engine()
@@ -70,11 +79,19 @@ def pluralizer(value):
 
 
 def replacer(value):
+    """This procedure takes in markdown search for specified unit text and converts unit annotations
+
+    Args:
+        value ([string]): [parameter takes in the preprocess markdown]
+
+    Returns:
+        [string]: [returns the preprocess markdown with any unit annotations converted to alternate units]
+    """
+
     ureg = pint.UnitRegistry(autoconvert_offset_to_baseunit=True)
     ureg.default_system = DEFAULT_CONFIG['UNIT_SYSTEM']
     expression = value.group()[5:-1].strip()
     Q_ = ureg.Quantity
-    dir(ureg.sys)
 
     if '::' in expression:
         unit, *other_units = expression.split('::')
@@ -91,6 +108,11 @@ def replacer(value):
 
 
 def initialized(pelican):
+    """Initializes default variables and then checks for changes to the default in the pelican.conf
+
+    Args:
+        pelican ([string]): [parameter takes in all the set variables in the pelican.conf]
+    """
 
     DEFAULT_CONFIG.setdefault('UNIT_SYSTEM', 'SI')
     DEFAULT_CONFIG.setdefault('UNIT_PRECISION', 2)
@@ -103,6 +125,11 @@ def initialized(pelican):
 
 
 def unit(content):
+    """checks the content for a unit annotation. If there is, it sends it for processing, else it skips the content
+
+    Args:
+        content ([string]): [contains the markdown content of each article or page entry in the corpus]
+    """
 
     if isinstance(content, contents.Static):
         return
@@ -113,5 +140,7 @@ def unit(content):
 
 
 def register():
+    """Registers the plugin with the pelican signal system
+    """
     signals.initialized.connect(initialized)
     signals.content_object_init.connect(unit)
