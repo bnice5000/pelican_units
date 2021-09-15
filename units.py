@@ -1,16 +1,41 @@
 ''' Units is a plugin that convert between unit systems.
 
+# pelican_units
+A pelican plugin that will automatically convert units between different systems.
+
 Units uses [Pints](https://pint.readthedocs.io/en/stable/) to automatically convert between unit systems.
 
-Using the special notation (INSERT NOTATION HERE), units will seek out, create,
-and insert a unit conversion into the page so that measurements are useful to
-all readers.
+Units will automagically convert your units and measurements into another unit. Units will seek out, create, and insert a unit conversion into the page so that measurements are useful to a wider audience. This plugin is especially useful to people who live in a country that does not use the SI system of measurement (such as the United States). It will give their audience a better appreciation of the measurements that are mentioned without much additional work for the author.
 
-SI
+## Prerequisites:
 
-FU
+This package requires [Pint](https://github.com/hgrecco/pint) and [inflict](https://github.com/jaraco/inflect) before running. Pint is the engine behind the unit conversion. Inflict pluralizes the units so that they are grammatically correct.
 
-FFF
+## Usage:
+
+Units takes two different notations.
+
+The first notation will convert the annotated measurement to the default system:
+
+`This is a test of a single conversion {unit: 10 ft}.`
+
+The second method allows you to specify the unit conversion or many converstions:
+
+`This tests a single conversion to a specified unit {unit: 28g :: oz}`
+
+`This tests multiple conversion to a specified unit {unit: 28g :: oz :: lbs}`
+
+## Project Information
+
+__author__ = "Brian Levin"
+__copyright__ = "Copyright 2021, Brian Levin"
+__credits__ = [Brian Levin]
+__license__ = "MIT"
+__version__ = "20210915W"
+__maintainer__ = "Brian Levin"
+__email__ = "brian4lawschool+units@gmail.com"
+__status__ = "Beta"
+
 '''
 
 import logging
@@ -36,9 +61,12 @@ def pluralizer(value):
 
     if value.magnitude != 1:
         p = inflect.engine()
-        return p.inflect("{magnitude} plural('{units}')".format(magnitude=round(value.magnitude, DEFAULT_CONFIG['UNIT_PRECISION']), units=value.units))
+        return p.inflect("{magnitude} plural('{units}')".format(magnitude=round(value.magnitude,
+                                                                                DEFAULT_CONFIG['UNIT_PRECISION']),
+                                                                units=value.units))
     else:
-        return '{magnitude} {units}'.format(magnitude=round(value.magnitude, DEFAULT_CONFIG['UNIT_PRECISION']), units=value.units)
+        return '{magnitude} {units}'.format(magnitude=round(value.magnitude, DEFAULT_CONFIG['UNIT_PRECISION']),
+                                            units=value.units)
 
 
 def replacer(value):
@@ -58,8 +86,6 @@ def replacer(value):
         unit = pluralizer(Q_(expression))
         converted_unit = pluralizer(Q_(expression).to_base_units())
 
-    logger.debug(converted_unit)
-    # breakpoint()
     html_unit = DEFAULT_CONFIG['UNIT_HTML_WRAPPER'].format(unit=unit, converted=converted_unit)
     return html_unit
 
