@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "pelican_units"
+version = "0.1.0"
+description = "A Unit converstion system for Pelican."
+authors = ["Brian Levin <brian.g.levin@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pelican = "^4.6.0"
+Pint = "^0.17"
+inflect = "^5.3.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+pdoc3 = "^0.10.0"
+poetry = "^1.1.8"
+black = "^21.9b0"
+flake8 = "^3.9.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

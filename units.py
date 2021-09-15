@@ -1,4 +1,4 @@
-''' Units is a plugin that convert between unit systems.
+""" Units is a plugin that convert between unit systems.
 
 # pelican_units
 A pelican plugin that will automatically convert units between different systems.
@@ -36,7 +36,7 @@ __maintainer__ = "Brian Levin"
 __email__ = "brian4lawschool+units@gmail.com"
 __status__ = "Beta"
 
-'''
+"""
 
 import logging
 import re
@@ -49,12 +49,12 @@ logger = logging.getLogger(__name__)
 try:
     import pint
 except ImportError:
-    logger.fatal('Pint not found')
+    logger.fatal("Pint not found")
 
 try:
     import inflect
 except ImportError:
-    logger.fatal('Inflect not found')
+    logger.fatal("Inflect not found")
 
 
 def pluralizer(value):
@@ -70,12 +70,17 @@ def pluralizer(value):
 
     if value.magnitude != 1:
         p = inflect.engine()
-        return p.inflect("{magnitude} plural('{units}')".format(magnitude=round(value.magnitude,
-                                                                                DEFAULT_CONFIG['UNIT_PRECISION']),
-                                                                units=value.units))
+        return p.inflect(
+            "{magnitude} plural('{units}')".format(
+                magnitude=round(value.magnitude, DEFAULT_CONFIG["UNIT_PRECISION"]),
+                units=value.units,
+            )
+        )
     else:
-        return '{magnitude} {units}'.format(magnitude=round(value.magnitude, DEFAULT_CONFIG['UNIT_PRECISION']),
-                                            units=value.units)
+        return "{magnitude} {units}".format(
+            magnitude=round(value.magnitude, DEFAULT_CONFIG["UNIT_PRECISION"]),
+            units=value.units,
+        )
 
 
 def replacer(value):
@@ -89,21 +94,25 @@ def replacer(value):
     """
 
     ureg = pint.UnitRegistry(autoconvert_offset_to_baseunit=True)
-    ureg.default_system = DEFAULT_CONFIG['UNIT_SYSTEM']
+    ureg.default_system = DEFAULT_CONFIG["UNIT_SYSTEM"]
     expression = value.group()[5:-1].strip()
     Q_ = ureg.Quantity
 
-    if '::' in expression:
-        unit, *other_units = expression.split('::')
+    if "::" in expression:
+        unit, *other_units = expression.split("::")
         unit = Q_(unit)
-        converted_unit = ', '.join([pluralizer(unit.to(other_unit)) for other_unit in other_units])
+        converted_unit = ", ".join(
+            [pluralizer(unit.to(other_unit)) for other_unit in other_units]
+        )
         unit = pluralizer(unit)
 
     else:
         unit = pluralizer(Q_(expression))
         converted_unit = pluralizer(Q_(expression).to_base_units())
 
-    html_unit = DEFAULT_CONFIG['UNIT_HTML_WRAPPER'].format(unit=unit, converted=converted_unit)
+    html_unit = DEFAULT_CONFIG["UNIT_HTML_WRAPPER"].format(
+        unit=unit, converted=converted_unit
+    )
     return html_unit
 
 
@@ -114,14 +123,16 @@ def initialized(pelican):
         pelican ([string]): [parameter takes in all the set variables in the pelican.conf]
     """
 
-    DEFAULT_CONFIG.setdefault('UNIT_SYSTEM', 'SI')
-    DEFAULT_CONFIG.setdefault('UNIT_PRECISION', 2)
-    DEFAULT_CONFIG.setdefault('UNIT_HTML_WRAPPER', '{unit} (<em>{converted}</em>)')
+    DEFAULT_CONFIG.setdefault("UNIT_SYSTEM", "SI")
+    DEFAULT_CONFIG.setdefault("UNIT_PRECISION", 2)
+    DEFAULT_CONFIG.setdefault("UNIT_HTML_WRAPPER", "{unit} (<em>{converted}</em>)")
 
     if pelican:
-        pelican.settings.setdefault('UNIT_SYSTEM', 'SI')
-        DEFAULT_CONFIG.setdefault('UNIT_PRECISION', 2)
-        pelican.settings.setdefault('UNIT_HTML_WRAPPER', '{unit} (<em>{converted}</em>)')
+        pelican.settings.setdefault("UNIT_SYSTEM", "SI")
+        pelican.settings.setdefault("UNIT_PRECISION", 2)
+        pelican.settings.setdefault(
+            "UNIT_HTML_WRAPPER", "{unit} (<em>{converted}</em>)"
+        )
 
 
 def unit(content):
@@ -134,13 +145,12 @@ def unit(content):
     if isinstance(content, contents.Static):
         return
 
-    if content._content and ('{unit:' in content._content):
-        pattern = re.compile(r'\{unit:([^}]+)\}')
+    if content._content and ("{unit:" in content._content):
+        pattern = re.compile(r"\{unit:([^}]+)\}")
         content._content = re.sub(pattern, replacer, content._content)
 
 
 def register():
-    """Registers the plugin with the pelican signal system
-    """
+    """Registers the plugin with the pelican signal system"""
     signals.initialized.connect(initialized)
     signals.content_object_init.connect(unit)
